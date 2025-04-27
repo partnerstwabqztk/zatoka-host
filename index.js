@@ -1,13 +1,26 @@
-const { Client, GatewayIntentBits, Partials } = require('discord.js');
+const { Client, Intents } = require('discord.js-selfbot-v13');
+const { MessageEmbed } = require('discord.js-selfbot-v13');
+const express = require('express');
+const app = express();
+const PORT = 8080;
+const Discord = require('discord.js-selfbot-v13');
+// Konfiguracja klienta Discord
 const client = new Client({
-    intents: [
-        GatewayIntentBits.Guilds,
-        GatewayIntentBits.GuildMessages,
-        GatewayIntentBits.GuildMembers,
-        GatewayIntentBits.DirectMessages,
-        GatewayIntentBits.MessageContent,
-    ],
-    partials: [Partials.Channel],
+  checkUpdate: false,
+});
+
+// Serwer HTTP do utrzymania aktywności na Render (dla darmowego tieru)
+app.get('/', (req, res) => {
+  res.send('Self-bot działa na Render! 🚀');
+});
+
+app.listen(PORT, () => {
+  console.log(`Serwer pingujący działa na porcie ${PORT}`);
+});
+
+// Obsługa zdarzeń Discorda
+client.once('ready', () => {
+  console.log(`Zalogowano jako ${client.user.tag}!`);
 });
 
 // === KONFIGURACJA ===

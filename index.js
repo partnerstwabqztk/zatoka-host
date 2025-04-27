@@ -1,6 +1,6 @@
 process.on('uncaughtException', (err) => {
-  if (err.message.includes('friend_source_flags') || err.message.includes('ClientUserSettingManager._patch')) {
-    console.warn('⚠️ Ostrzeżenie: Brak danych ustawień klienta. Ignoruję błąd.');
+  if (err.message.includes('friend_source_flags') || err.message.includes('Cannot read properties of null') || err.message.includes('ClientUserSettingManager._patch')) {
+    console.warn('⚠️ Ostrzeżenie: Znany błąd Discorda. Ignoruję.');
   } else {
     console.error('❌ Błąd krytyczny:', err);
     process.exit(1);

@@ -1,23 +1,36 @@
-// 📦 WYMAGANE PACZKI
-const { Client } = require('discord.js-selfbot-v13');
-const express = require('express');
-const app = express();
-const PORT = process.env.PORT || 8080;
-
-// 🔥 EXPRESS - żeby Render trzymał bota aktywnego
-app.get('/', (req, res) => {
-  res.send('Self-bot działa na Render! 🚀');
-});
-app.listen(PORT, () => {
-  console.log(`🌐 Serwer Express działa na porcie ${PORT}`);
+const { Client, GatewayIntentBits, Partials } = require('discord.js');
+const client = new Client({
+    intents: [
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.GuildMembers,
+        GatewayIntentBits.DirectMessages,
+        GatewayIntentBits.MessageContent,
+    ],
+    partials: [Partials.Channel],
 });
 
-// 🤖 TWORZENIE KLIENTA DISCORD
-const client = new Client({ checkUpdate: false });
+// === KONFIGURACJA ===
+const adminId = '1087428851036082266'; // <-- Twoje ID (do powiadomień)
+const reklamoweKanaly = [
+    { id: '1346609270933946490', czas: 11 }, 
+    { id: '1346609275761332325', czas: 11 },
+    { id: '1346609282174685264', czas: 11 },
+    { id: '1346609283932094529', czas: 11 },
+    { id: '1346609287048204378', czas: 11 },
+    { id: '1346609290332602420', czas: 16 },
+    { id: '1347263942975557633', czas: 16 },
+    { id: '1346609292425429194', czas: 11 },
+];
 
-// 🌊 TWOJA REKLAMA - Zatoka Bots&Host
-const serverAd = `
-# 🌊 Zatoka Bots&Host – Twój port dla botów i hostingu Discord! 🌊
+const partnerstwaKanaly = [
+    { id: '1346609247869337701', czas: 6 },    // 6 minut
+    { id: '1332399570872832151', czas: 120 },  // 2 godziny = 120 minut
+    { id: '1286351421691793466', czas: 60 },   // 1 godzina = 60 minut
+];
+
+const duzaReklama = `
+🌊Zatoka Bots&Host – Twój port dla botów i hostingu Discord! 🌊
 
 🤔 Szukasz miejsca, gdzie możesz stworzyć własnego bota Discord albo potrzebujesz solidnego hostingu w dobrej cenie?
 U nas znajdziesz wszystko, czego potrzebujesz – łatwo, szybko i tanio! 🚀
@@ -25,122 +38,93 @@ U nas znajdziesz wszystko, czego potrzebujesz – łatwo, szybko i tanio! 🚀
 🔹 Co oferujemy?
 
 ➤ Tworzenie botów Discord na zamówienie – spełniamy Twoje pomysły, od prostych funkcji po rozbudowane systemy!
-
 ➤ Hosting botów Discord – stabilny, szybki, 24/7 bez żadnych przerw!
-
 ➤ Niskie ceny – elastyczne pakiety dostępne na każdą kieszeń.
-
 ➤ 3 dni próbne za darmo – przetestuj nas bez ryzyka!
-
 ➤ 2 tygodnie na reklamację – Twoje zadowolenie jest dla nas priorytetem.
-
 ➤ Dropy i promocje – regularne eventy z nagrodami i zniżkami na usługi!
-
 ➤ Strefa zabawy – mini-gry, konkursy i eventy na naszym serwerze!
 
 🌟 Dlaczego właśnie Zatoka Bots&Host?
-
 • Szybkie i profesjonalne wykonanie usług
-
 • Pełne wsparcie i pomoc techniczna
-
 • Stały monitoring usług i aktualizacje
-
 • Przyjazna społeczność i świetna atmosfera
-
 • Realne możliwości rozwoju Twoich projektów
 
-ℹ️ Dołącz do naszej Zatoki i poczuj różnicę!
+ℹ️ Dołącz do naszej Zatoki i poczuj różnicę! Rozwijaj swoje pomysły, baw się dobrze i korzystaj z najlepszych warunków na rynku!
 
 📩 Zapraszamy: https://discord.gg/TEZ6auew7U
 📢 Potrzebujesz więcej informacji? Nasz support czeka na Twoją wiadomość!
 `;
 
-// ✉️ KRÓTKA WIADOMOŚĆ PARTNERSTWOWA
-const partnerMessage = '# Szukam Partnerstw. Wbijaj PV!';
+const wiadomoscPartnerstwo = '# Szukam partnerstw. Napisz pv jeśli chcesz! 🌊🦜';
 
-// 📢 TWOJE KANAŁY
-const channels = {
-  zimowe: {
-    shops: '1346609275761332325',
-    hosting: '1347263942975557633',
-    programing: '1346609292425429194',
-    partnerstwa: '1346609247869337701'
-  },
-  miasto: {
-    partnerstwa: '1332399570872832151'
-  },
-  hyper: {
-    hyperpartners: '1286351421691793466'
-  }
-};
+client.once('ready', () => {
+    console.log(`✅ Bot zalogowany jako ${client.user.tag}`);
 
-// 📋 FUNKCJE WYSYŁANIA
+    // Automatyczne wysyłanie dużych reklam
+    reklamoweKanaly.forEach(({ id, czas }) => {
+        setInterval(async () => {
+            const channel = await client.channels.fetch(id).catch(() => null);
+            if (channel) {
+                channel.send(duzaReklama);
+            }
+        }, czas * 60 * 1000);
+    });
 
-async function sendAd(channelId) {
-  try {
-    let channel = client.channels.cache.get(channelId) || await client.channels.fetch(channelId);
-    if (!channel) return console.error(`❌ Nie znaleziono kanału ${channelId}`);
-    await channel.send(serverAd);
-    console.log(`✅ Wysłano reklamę na ${channel.name}`);
-  } catch (error) {
-    console.error(`❌ Błąd przy wysyłaniu reklamy:`, error);
-  }
-}
-
-async function sendPartnerInvite(channelId) {
-  try {
-    let channel = client.channels.cache.get(channelId) || await client.channels.fetch(channelId);
-    if (!channel) return console.error(`❌ Nie znaleziono kanału ${channelId}`);
-    await channel.send(partnerMessage);
-    console.log(`✅ Wysłano partnerstwo na ${channel.name}`);
-  } catch (error) {
-    console.error(`❌ Błąd przy wysyłaniu partnerstwa:`, error);
-  }
-}
-
-function startSendingAds() {
-  // Reklamy na zimowe co 6 minut
-  setInterval(() => {
-    sendAd(channels.zimowe.shops);
-    sendAd(channels.zimowe.hosting);
-    sendAd(channels.zimowe.programing);
-  }, 6 * 60 * 1000);
-
-  // Reklama na hyper co 1 godzinę
-  setInterval(() => {
-    sendAd(channels.hyper.hyperpartners);
-  }, 1 * 60 * 60 * 1000);
-
-  // Reklama na miasto co 2 godziny
-  setInterval(() => {
-    sendAd(channels.miasto.partnerstwa);
-  }, 2 * 60 * 60 * 1000);
-}
-
-function startSendingPartnerInvites() {
-  // Partnerstwo na zimowe co 6 minut
-  setInterval(() => {
-    sendPartnerInvite(channels.zimowe.partnerstwa);
-  }, 6 * 60 * 1000);
-
-  // Partnerstwo na miasto co 2 godziny
-  setInterval(() => {
-    sendPartnerInvite(channels.miasto.partnerstwa);
-  }, 2 * 60 * 60 * 1000);
-
-  // Partnerstwo na hyper co 1 godzinę
-  setInterval(() => {
-    sendPartnerInvite(channels.hyper.hyperpartners);
-  }, 1 * 60 * 60 * 1000);
-}
-
-// 🚀 READY
-client.once('ready', async () => {
-  console.log(`✅ Zalogowano jako ${client.user.tag}`);
-  startSendingAds();
-  startSendingPartnerInvites();
+    // Automatyczne wysyłanie wiadomości o szukaniu partnerstw
+    partnerstwaKanaly.forEach(({ id, czas }) => {
+        setInterval(async () => {
+            const channel = await client.channels.fetch(id).catch(() => null);
+            if (channel) {
+                channel.send(wiadomoscPartnerstwo);
+            }
+        }, czas * 60 * 1000);
+    });
 });
 
-// 🔑 LOGOWANIE
-client.login(process.env.DISCORD_TOKEN);
+// System partnerstw DM
+client.on('messageCreate', async (message) => {
+    if (message.author.bot) return;
+
+    // Jeśli to DM
+    if (message.channel.type === 1) {
+        if (!message.channel.partnerSession) {
+            message.channel.partnerSession = {
+                krok: 'oczekiwanie_na_reklame'
+            };
+            await message.channel.send('# Hejka! wyślij tutaj swoją reklamę (maksymalnie 1 serwer 🌐.)');
+            return;
+        }
+
+        const session = message.channel.partnerSession;
+
+        if (session.krok === 'oczekiwanie_na_reklame') {
+            await message.channel.send('> Dziękujemy za reklamę! Teraz prosimy o wstawienie naszej reklamy na Twój serwer🤔.');
+            await message.channel.send(duzaReklama);
+            session.krok = 'oczekiwanie_na_wstawienie';
+            return;
+        }
+
+        if (session.krok === 'oczekiwanie_na_wstawienie' && message.content.toLowerCase().includes('wstawione')) {
+            await message.channel.send('# Czy na Twoim serwerze jest wymagane dołączenie? (tak/nie)');
+            session.krok = 'oczekiwanie_na_wymaganie';
+            return;
+        }
+
+        if (session.krok === 'oczekiwanie_na_wymaganie') {
+            if (message.content.toLowerCase() === 'tak') {
+                const adminUser = await client.users.fetch(adminId);
+                await adminUser.send(`⚠️ Partnerstwo z wymaganym dołączeniem: ${message.author.tag}`);
+                await message.channel.send('Dzięki i życzę miłego dnia! Powiadomiliśmy administrację o wymaganym dołączeniu! Admin będzie próbował jak najszybciej dołączyć!.');
+            } else {
+                await message.channel.send(' # Dzięki za informację!');
+            }
+            delete message.channel.partnerSession; // Reset
+        }
+    }
+});
+
+client.login(process.env.TOKEN);
+

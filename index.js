@@ -1,3 +1,4 @@
+// Łapanie znanych błędów
 process.on('uncaughtException', (err) => {
   if (err.message.includes('friend_source_flags') || err.message.includes('Cannot read properties of null') || err.message.includes('ClientUserSettingManager._patch')) {
     console.warn('⚠️ Ostrzeżenie: Znany błąd Discorda. Ignoruję.');
@@ -7,12 +8,10 @@ process.on('uncaughtException', (err) => {
   }
 });
 
-const { Client, Intents } = require('discord.js-selfbot-v13');
-const { MessageEmbed } = require('discord.js-selfbot-v13');
+const { Client, Intents, MessageEmbed } = require('discord.js-selfbot-v13');
 const express = require('express');
 const app = express();
 const PORT = 8080;
-const Discord = require('discord.js-selfbot-v13');
 require('dotenv').config();
 
 // Konfiguracja klienta Discord
@@ -25,7 +24,7 @@ app.get('/', (req, res) => {
   res.send('Self-bot działa na Render! 🚀');
 });
 app.listen(PORT, () => {
-  console.log(`Serwer pingujący działa na porcie ${PORT}`);
+  console.log(`🌐 Serwer pingujący działa na porcie ${PORT}`);
 });
 
 // === KONFIGURACJA ===
@@ -81,6 +80,7 @@ const wiadomoscPartnerstwo = '# Szukam partnerstw. Napisz pv jeśli chcesz! 🌊
 // Mapa blokad użytkowników (na 24h)
 const blokady = new Map();
 
+// Po zalogowaniu
 client.once('ready', () => {
   console.log(`✅ Bot zalogowany jako ${client.user.tag}`);
 
@@ -147,7 +147,7 @@ client.on('messageCreate', async (message) => {
       await message.channel.send('# Dzięki za informację!');
     }
 
-    // Wstawienie reklamy użytkownika na Twój kanał
+    // Wstawienie reklamy użytkownika na kanał
     const kanal = await client.channels.fetch(kanalReklamowy).catch(() => null);
     if (kanal) {
       kanal.send(`# Reklama od użytkownika ${message.author.tag}\n${session.reklamaUzytkownika}`);
@@ -167,5 +167,5 @@ client.on('messageCreate', async (message) => {
   }
 });
 
+// Logowanie
 client.login(process.env.TOKEN);
-

@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: zatoka-host
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node index.js
+    envVars:
+      - key: TOKEN
+        value: MTM2NjA5NTM1MTA1NjA0MDA4Nw.GoamVh.WiO4gAfJ0NetRbLREtM_VdY5EMF-C00KAieFY0

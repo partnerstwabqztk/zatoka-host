@@ -13,43 +13,39 @@ const express = require('express');
 const app = express();
 const PORT = 8080;
 const Discord = require('discord.js-selfbot-v13');
+require('dotenv').config();
+
 // Konfiguracja klienta Discord
 const client = new Client({
   checkUpdate: false,
 });
 
-// Serwer HTTP do utrzymania aktywności na Render (dla darmowego tieru)
+// Serwer HTTP do utrzymania aktywności na Render
 app.get('/', (req, res) => {
   res.send('Self-bot działa na Render! 🚀');
 });
-
 app.listen(PORT, () => {
   console.log(`Serwer pingujący działa na porcie ${PORT}`);
 });
 
-// Obsługa zdarzeń Discorda
-client.once('ready', () => {
-  console.log(`Zalogowano jako ${client.user.tag}!`);
-});
-
 // === KONFIGURACJA ===
-const adminId = '1087428851036082266'; // <-- Twoje ID (do powiadomień)
+const adminId = '1087428851036082266'; // Twoje ID do powiadomień
 const reklamoweKanaly = [
-    { id: '1346609270933946490', czas: 11 }, 
-    { id: '1346609275761332325', czas: 11 },
-    { id: '1346609282174685264', czas: 11 },
-    { id: '1346609283932094529', czas: 11 },
-    { id: '1346609287048204378', czas: 11 },
-    { id: '1346609290332602420', czas: 16 },
-    { id: '1347263942975557633', czas: 16 },
-    { id: '1346609292425429194', czas: 11 },
+  { id: '1346609270933946490', czas: 11 },
+  { id: '1346609275761332325', czas: 11 },
+  { id: '1346609282174685264', czas: 11 },
+  { id: '1346609283932094529', czas: 11 },
+  { id: '1346609287048204378', czas: 11 },
+  { id: '1346609290332602420', czas: 16 },
+  { id: '1347263942975557633', czas: 16 },
+  { id: '1346609292425429194', czas: 11 },
 ];
-
 const partnerstwaKanaly = [
-    { id: '1346609247869337701', czas: 6 },    // 6 minut
-    { id: '1332399570872832151', czas: 120 },  // 2 godziny = 120 minut
-    { id: '1286351421691793466', czas: 60 },   // 1 godzina = 60 minut
+  { id: '1346609247869337701', czas: 6 },
+  { id: '1332399570872832151', czas: 120 },
+  { id: '1286351421691793466', czas: 60 },
 ];
+const kanalReklamowy = '1365679660796612608'; // ID kanału do wrzucania reklam użytkowników
 
 const duzaReklama = `
 🌊Zatoka Bots&Host – Twój port dla botów i hostingu Discord! 🌊
@@ -82,70 +78,93 @@ U nas znajdziesz wszystko, czego potrzebujesz – łatwo, szybko i tanio! 🚀
 
 const wiadomoscPartnerstwo = '# Szukam partnerstw. Napisz pv jeśli chcesz! 🌊🦜';
 
+// Mapa blokad użytkowników (na 24h)
+const blokady = new Map();
+
 client.once('ready', () => {
-    console.log(`✅ Bot zalogowany jako ${client.user.tag}`);
+  console.log(`✅ Bot zalogowany jako ${client.user.tag}`);
 
-    // Automatyczne wysyłanie dużych reklam
-    reklamoweKanaly.forEach(({ id, czas }) => {
-        setInterval(async () => {
-            const channel = await client.channels.fetch(id).catch(() => null);
-            if (channel) {
-                channel.send(duzaReklama);
-            }
-        }, czas * 60 * 1000);
-    });
+  // Wysyłanie reklam
+  reklamoweKanaly.forEach(({ id, czas }) => {
+    setInterval(async () => {
+      const channel = await client.channels.fetch(id).catch(() => null);
+      if (channel) {
+        channel.send(duzaReklama);
+      }
+    }, czas * 60 * 1000);
+  });
 
-    // Automatyczne wysyłanie wiadomości o szukaniu partnerstw
-    partnerstwaKanaly.forEach(({ id, czas }) => {
-        setInterval(async () => {
-            const channel = await client.channels.fetch(id).catch(() => null);
-            if (channel) {
-                channel.send(wiadomoscPartnerstwo);
-            }
-        }, czas * 60 * 1000);
-    });
+  // Wysyłanie wiadomości o partnerstwach
+  partnerstwaKanaly.forEach(({ id, czas }) => {
+    setInterval(async () => {
+      const channel = await client.channels.fetch(id).catch(() => null);
+      if (channel) {
+        channel.send(wiadomoscPartnerstwo);
+      }
+    }, czas * 60 * 1000);
+  });
 });
 
 // System partnerstw DM
 client.on('messageCreate', async (message) => {
-    if (message.author.bot) return;
+  if (message.author.bot) return;
+  if (message.channel.type !== 1) return; // tylko DM
 
-    // Jeśli to DM
-    if (message.channel.type === 1) {
-        if (!message.channel.partnerSession) {
-            message.channel.partnerSession = {
-                krok: 'oczekiwanie_na_reklame'
-            };
-            await message.channel.send('# Hejka! wyślij tutaj swoją reklamę (maksymalnie 1 serwer 🌐.)');
-            return;
-        }
+  if (blokady.has(message.author.id)) {
+    await message.channel.send('⛔ Możesz nawiązać kolejne partnerstwo za mniej niż 24h!');
+    return;
+  }
 
-        const session = message.channel.partnerSession;
+  if (!message.channel.partnerSession) {
+    message.channel.partnerSession = { krok: 'oczekiwanie_na_reklame' };
+    await message.channel.send('# Hejka! Wyślij tutaj swoją reklamę (maksymalnie 1 serwer 🌐.)');
+    return;
+  }
 
-        if (session.krok === 'oczekiwanie_na_reklame') {
-            await message.channel.send('> Dziękujemy za reklamę! Teraz prosimy o wstawienie naszej reklamy na Twój serwer🤔.');
-            await message.channel.send(duzaReklama);
-            session.krok = 'oczekiwanie_na_wstawienie';
-            return;
-        }
+  const session = message.channel.partnerSession;
 
-        if (session.krok === 'oczekiwanie_na_wstawienie' && message.content.toLowerCase().includes('wstawione')) {
-            await message.channel.send('# Czy na Twoim serwerze jest wymagane dołączenie? (tak/nie)');
-            session.krok = 'oczekiwanie_na_wymaganie';
-            return;
-        }
+  if (session.krok === 'oczekiwanie_na_reklame') {
+    session.reklamaUzytkownika = message.content;
 
-        if (session.krok === 'oczekiwanie_na_wymaganie') {
-            if (message.content.toLowerCase() === 'tak') {
-                const adminUser = await client.users.fetch(adminId);
-                await adminUser.send(`⚠️ Partnerstwo z wymaganym dołączeniem: ${message.author.tag}`);
-                await message.channel.send('Dzięki i życzę miłego dnia! Powiadomiliśmy administrację o wymaganym dołączeniu! Admin będzie próbował jak najszybciej dołączyć!.');
-            } else {
-                await message.channel.send(' # Dzięki za informację!');
-            }
-            delete message.channel.partnerSession; // Reset
-        }
+    await message.channel.send('> Dziękujemy za reklamę! Teraz prosimy o wstawienie naszej reklamy na Twój serwer 🤔.');
+    await message.channel.send(duzaReklama);
+    session.krok = 'oczekiwanie_na_wstawienie';
+    return;
+  }
+
+  if (session.krok === 'oczekiwanie_na_wstawienie' && message.content.toLowerCase().includes('wstawione')) {
+    await message.channel.send('# Czy na Twoim serwerze jest wymagane dołączenie? (tak/nie)');
+    session.krok = 'oczekiwanie_na_wymaganie';
+    return;
+  }
+
+  if (session.krok === 'oczekiwanie_na_wymaganie') {
+    if (message.content.toLowerCase() === 'tak') {
+      const adminUser = await client.users.fetch(adminId);
+      await adminUser.send(`⚠️ Partnerstwo z wymaganym dołączeniem: ${message.author.tag}`);
+      await message.channel.send('Dzięki! Powiadomiliśmy administrację! 🛡️');
+    } else {
+      await message.channel.send('# Dzięki za informację!');
     }
+
+    // Wstawienie reklamy użytkownika na Twój kanał
+    const kanal = await client.channels.fetch(kanalReklamowy).catch(() => null);
+    if (kanal) {
+      kanal.send(`# Reklama od użytkownika ${message.author.tag}\n${session.reklamaUzytkownika}`);
+      console.log(`[PARTNERSTWO] Wstawiono reklamę od ${message.author.tag}`);
+    }
+
+    await message.channel.send('Miłego dnia! Dziękuję za nawiązane partnerstwo! 🌊');
+
+    blokady.set(message.author.id, Date.now());
+
+    setTimeout(() => {
+      blokady.delete(message.author.id);
+      message.author.send('🔔 Hej! Możesz już ponownie nawiązać partnerstwo, jeśli chcesz! 🚀').catch(() => {});
+    }, 24 * 60 * 60 * 1000); // 24 godziny
+
+    delete message.channel.partnerSession;
+  }
 });
 
 client.login(process.env.TOKEN);

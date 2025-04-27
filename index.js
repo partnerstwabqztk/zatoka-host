@@ -12,7 +12,6 @@ const { Client, Intents, MessageEmbed } = require('discord.js-selfbot-v13');
 const express = require('express');
 const app = express();
 const PORT = 8080;
-require('dotenv').config();
 
 // Konfiguracja klienta Discord
 const client = new Client({

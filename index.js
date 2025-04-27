@@ -1,11 +1,12 @@
 process.on('uncaughtException', (err) => {
   if (err.message.includes('friend_source_flags')) {
     console.warn('⚠️ Ostrzeżenie: Brak danych friend_source_flags. Ignoruję błąd.');
-  } else {
-    console.error('❌ Błąd krytyczny:', err);
-    process.exit(1);
+    return; // <-- DODAJ TO! NIE zamykaj procesu
   }
+  console.error('❌ Błąd krytyczny:', err);
+  process.exit(1); // tylko inne błędy zamykają
 });
+
 
 const { Client, Intents } = require('discord.js-selfbot-v13');
 const { MessageEmbed } = require('discord.js-selfbot-v13');

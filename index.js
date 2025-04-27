@@ -1,6 +1,6 @@
 process.on('uncaughtException', (err) => {
-  if (err.message.includes('friend_source_flags')) {
-    console.warn('⚠️ Ostrzeżenie: Brak danych friend_source_flags. Ignoruję błąd.');
+  if (err.message.includes('friend_source_flags') || err.message.includes('ClientUserSettingManager._patch')) {
+    console.warn('⚠️ Ostrzeżenie: Brak danych ustawień klienta. Ignoruję błąd.');
   } else {
     console.error('❌ Błąd krytyczny:', err);
     process.exit(1);

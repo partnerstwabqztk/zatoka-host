@@ -63,7 +63,6 @@ const miastoall = '1254165638331502653';
 const miasto6h = '1254123088103346247';
 const miasto2gdz = '1254163564264947782';
 const zeroToOneHundred_2h = '1254162168899960883';
-const hyperads = '1286351419523207223'; // Nowy kanał: HYPERADS
 
 client.once('ready', () => {
   console.log(`Bot ${client.user.tag} jest gotowy.`);
@@ -139,12 +138,6 @@ client.once('ready', () => {
     const channel = client.channels.cache.get(zeroToOneHundred_2h);
     if (channel) await channel.send(serverAd);
   }, 2 * 60 * 60 * 1000);
-
-  setInterval(async () => {
-    const channel = client.channels.cache.get(hyperads);
-    if (channel) await channel.send(serverAd);
-  }, 5 * 60 * 1000);
-});
 
 client.on('messageCreate', async (message) => {
   if (!message.guild && !message.author.bot && message.author.id !== client.user.id) {

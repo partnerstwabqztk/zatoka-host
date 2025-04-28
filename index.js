@@ -140,32 +140,42 @@ client.once('ready', () => {
   }, 2 * 60 * 60 * 1000);
 client.on('messageCreate', async (message) => {
  
+ client.on('messageCreate', async (message) => {
+  // Dodajmy logowanie, aby sprawdzić, czy bot odbiera wiadomości DM
+  console.log('Wiadomość otrzymana:', message.content); // Zaloguj zawartość wiadomości
+
   // Sprawdzamy, czy wiadomość pochodzi z DM (nie z serwera)
   if (!message.guild && !message.author.bot) {
     console.log('Bot otrzymał wiadomość DM:', message.content); // Zaloguj wiadomość z DM
-client.on('messageCreate', async (message) => {
 
-  
-  if (!message.guild && !message.author.bot && message.author.id !== client.user.id) {
     const now = Date.now();
     const last = partnershipTimestamps.get(message.author.id);
 
+    // Jeśli użytkownik wysłał wiadomość mniej niż tydzień temu, blokujemy kolejne partnerstwo
     if (last && now - last < 7 * 24 * 60 * 60 * 1000) {
-      return message.channel.send("⏳ Musisz jeszcze poczekać, zanim będziesz mógł nawiązać kolejne partnerstwo. Spróbuj ponownie za tydzień.");
+      return message.reply("⏳ Musisz jeszcze poczekać, zanim będziesz mógł nawiązać kolejne partnerstwo. Spróbuj ponownie za tydzień.");
     }
 
+    // Jeśli użytkownik nie ma partnerstwa, ustawiamy go w systemie
     if (!partneringUsers.has(message.author.id)) {
       partneringUsers.set(message.author.id, null);
-      return message.channel.send("🌎 Jeśli chcesz nawiązać partnerstwo, wyślij swoją reklamę (maksymalnie 1 serwer).");
+      return message.reply("🌎 Jeśli chcesz nawiązać partnerstwo, wyślij swoją reklamę (maksymalnie 1 serwer).");
     }
 
+    // Sprawdzamy, czy użytkownik ma już swoją reklamę
     const userAd = partneringUsers.get(message.author.id);
 
     if (userAd === null) {
       partneringUsers.set(message.author.id, message.content);
-      await message.channel.send(`✅ Wstaw naszą reklamę:\n${serverAd}`);
-      return message.channel.send("⏰ Daj znać, gdy wstawisz reklamę!");
+      return message.reply("✅ Wstaw naszą reklamę:\n" + serverAd);
     }
+
+    // Jeśli użytkownik potwierdził, że wstawił reklamę, przekażemy mu kolejne instrukcje
+    if (message.content.toLowerCase().includes('wstawi') || message.content.toLowerCase().includes('już') || message.content.toLowerCase().includes('gotowe') || message.content.toLowerCase().includes('juz')) {
+      return message.reply("⏰ Daj znać, gdy wstawisz reklamę!");
+    }
+  }
+});
 
     if (message.content.toLowerCase().includes('wstawi') || message.content.toLowerCase().includes('już') || message.content.toLowerCase().includes('gotowe') || message.content.toLowerCase().includes('juz')) {
       await message.channel.send("Czy wymagane jest dołączenie na twój serwer?");

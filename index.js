@@ -128,24 +128,22 @@ client.once('ready', () => {
 });
 
 client.on('messageCreate', async (message) => {
-  // Obsługuje DM od użytkowników
-  if (!message.guild && !message.author.bot && message.author.id !== client.user.id) {
-    // Sprawdzenie, czy to zapytanie o partnerstwo
-    if (message.content.toLowerCase().includes('partnerstwo')) {
-      return message.author.send("🌍 Chcesz nawiązać partnerstwo? Wyślij swoją reklamę!");
-    }
+  if (message.author.bot) return;
+  if (message.channel.type === 'DM') {
+    try {
+      if (!message.content) return;
 
-    if (message.content) {
-      return message.author.send(`Dziękujemy za wiadomość! Odpowiemy jak najszybciej.`);
+      if (message.content.toLowerCase() === 'tak') {
+        await message.reply('❤️ Dziękujemy za nawiązanie partnerstwa! ✅ Twoja reklama została wstawiona na <#1334989910091759778> 🖱️ Kliknij [TUTAJ](https://discord.com/channels/1334962412033413122/1334989910091759778/1364121870575861770) aby przejść do twojego partnerstwa! 🔔 Pamiętaj że wyjście z serwera spowoduje automatyczne usunięcie reklamy!');
+      } else if (message.content.toLowerCase() === 'reklama') {
+        await message.reply('⏰ Dołącz do naszego serwera oraz daj znać gdy wstawisz reklamę, a wtedy my wstawimy twoją!');
+      } else {
+        await message.reply('🌎 Witaj! Jeśli chcesz nawiązać partnerstwo, wyślij proszę swoją reklamę (maksymalnie 1 serwer).');
+      }
+    } catch (error) {
+      console.error('Błąd przy wysyłaniu wiadomości DM:', error.message);
+      // Opcjonalnie: nie wywalaj całego bota
     }
-  }
-});
-
-// Wysłanie odpowiedzi na zapytania o partnerstwo
-client.on('messageCreate', async (message) => {
-  if (message.guild && message.content.toLowerCase().includes('partnerstwo')) {
-    // Odpowiedź na zapytanie partnerstwa
-    await message.author.send("🎉 Witaj! Jesteś zainteresowany partnerstwem. Aby rozpocząć, wyślij swoją reklamę!");
   }
 });
 

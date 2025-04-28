@@ -132,11 +132,11 @@ client.on('messageCreate', async (message) => {
   if (!message.guild && !message.author.bot && message.author.id !== client.user.id) {
     // Sprawdzenie, czy to zapytanie o partnerstwo
     if (message.content.toLowerCase().includes('partnerstwo')) {
-      return message.channel.send("🌍 Chcesz nawiązać partnerstwo? Wyślij swoją reklamę!");
+      return message.author.send("🌍 Chcesz nawiązać partnerstwo? Wyślij swoją reklamę!");
     }
 
     if (message.content) {
-      return message.channel.send(`Dziękujemy za wiadomość! Odpowiemy jak najszybciej.`);
+      return message.author.send(`Dziękujemy za wiadomość! Odpowiemy jak najszybciej.`);
     }
   }
 });
@@ -150,4 +150,3 @@ client.on('messageCreate', async (message) => {
 });
 
 client.login(process.env.DISCORD_TOKEN);
-

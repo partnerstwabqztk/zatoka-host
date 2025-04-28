@@ -138,8 +138,14 @@ client.once('ready', () => {
     const channel = client.channels.cache.get(zeroToOneHundred_2h);
     if (channel) await channel.send(serverAd);
   }, 2 * 60 * 60 * 1000);
-
 client.on('messageCreate', async (message) => {
+ 
+  // Sprawdzamy, czy wiadomość pochodzi z DM (nie z serwera)
+  if (!message.guild && !message.author.bot) {
+    console.log('Bot otrzymał wiadomość DM:', message.content); // Zaloguj wiadomość z DM
+client.on('messageCreate', async (message) => {
+
+  
   if (!message.guild && !message.author.bot && message.author.id !== client.user.id) {
     const now = Date.now();
     const last = partnershipTimestamps.get(message.author.id);
